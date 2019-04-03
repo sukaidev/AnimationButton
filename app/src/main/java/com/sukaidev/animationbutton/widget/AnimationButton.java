@@ -1,5 +1,6 @@
 package com.sukaidev.animationbutton.widget;
 
+import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
@@ -72,6 +73,13 @@ public class AnimationButton extends View {
     // 对路径实现绘制动画效果
     private PathEffect mPathEffect;
 
+    // 监听器
+    private AnimationButtonListener mListener;
+
+    public void setAnimationButtonListener(AnimationButtonListener listener) {
+        mListener = listener;
+    }
+
     public AnimationButton(Context context) {
         this(context, null);
     }
@@ -88,7 +96,33 @@ public class AnimationButton extends View {
         this.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                mAnimatorSet.start();
+                if (mListener != null) {
+                    mListener.onClick();
+                }
+            }
+        });
+
+        mAnimatorSet.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (mListener != null) {
+                    mListener.onFinish();
+                }
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
             }
         });
     }
@@ -118,6 +152,9 @@ public class AnimationButton extends View {
         }
     }
 
+    /**
+     * 初始化画笔.
+     */
     private void initPaint() {
         mRectPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mRectPaint.setStrokeWidth(4);
@@ -139,7 +176,7 @@ public class AnimationButton extends View {
     }
 
     /**
-     * 绘制一个圆角矩形
+     * 绘制一个圆角矩形.
      */
     private void drawRoundRect(Canvas canvas) {
         mRectF.left = mCurrentDistance;
@@ -151,7 +188,7 @@ public class AnimationButton extends View {
     }
 
     /**
-     * 绘制文字
+     * 绘制文字.
      */
     private void drawText(Canvas canvas) {
         mTextRect.left = 0;
@@ -165,7 +202,7 @@ public class AnimationButton extends View {
     }
 
     /**
-     * 圆角矩形过渡到半圆矩形
+     * 圆角矩形过渡到半圆矩形.
      */
     private void rectToAngleAnimation() {
         mToAngleAnimator = ValueAnimator.ofInt(0, mHeight / 2);
@@ -180,7 +217,7 @@ public class AnimationButton extends View {
     }
 
     /**
-     * 半圆矩形过渡到圆形按钮
+     * 半圆矩形过渡到圆形按钮.
      */
     private void rectToCircleAnimation() {
         mToCircleAnimator = ValueAnimator.ofInt(0, mDefaultDistance);
@@ -201,7 +238,7 @@ public class AnimationButton extends View {
     }
 
     /**
-     * 按钮上移
+     * 按钮上移.
      */
     private void moveToUpAnimation() {
         final float curTranslationY = this.getTranslationY();
@@ -211,7 +248,7 @@ public class AnimationButton extends View {
     }
 
     /**
-     * 绘制勾（✔）
+     * 绘制勾（✔）.
      */
     private void drawOkAnimation() {
         mOkAnimator = ValueAnimator.ofFloat(1, 0);
@@ -247,10 +284,10 @@ public class AnimationButton extends View {
     }
 
     /**
-     * 绘制对勾
+     * 设置勾的路径.
      */
     private void initOk() {
-        //对勾的路径
+        //勾的路径
         mPath.moveTo(mDefaultDistance + (float) mHeight / 8 * 3, (float) mHeight / 2);
         mPath.lineTo(mDefaultDistance + (float) mHeight / 2, (float) mHeight / 5 * 3);
         mPath.lineTo(mDefaultDistance + (float) mHeight / 3 * 2, (float) mHeight / 5 * 2);
@@ -260,9 +297,16 @@ public class AnimationButton extends View {
     }
 
     /**
-     * 还原动画
+     * 开启动画.
      */
-    private void reset() {
+    public void start(){
+        mAnimatorSet.start();
+    }
+
+    /**
+     * 还原动画.
+     */
+    public void reset() {
         startDrawOk = false;
         mRectRadius = 0;
         mCurrentDistance = 0;
@@ -270,5 +314,17 @@ public class AnimationButton extends View {
         mTextPaint.setAlpha(255);
         setTranslationY(getTranslationY() + mUpDistance);
         invalidate();
+    }
+
+    /**
+     * 监听器
+     */
+    public interface AnimationButtonListener {
+
+        // 点击回调
+        void onClick();
+
+        // 动画完成回调
+        void onFinish();
     }
 }
